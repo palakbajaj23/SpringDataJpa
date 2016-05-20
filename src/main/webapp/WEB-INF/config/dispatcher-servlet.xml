@@ -2,32 +2,43 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:c="http://www.springframework.org/schema/c"
 	xmlns:p="http://www.springframework.org/schema/p" xmlns:context="http://www.springframework.org/schema/context"
-	xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:jpa="http://www.springframework.org/schema/data/jpa"
-	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:jpa="http://www.springframework.org/schema/data/jpa" xmlns:mvc="http://www.springframework.org/schema/mvc"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
-	http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
     http://www.springframework.org/schema/context
-    http://www.springframework.org/schema/context/spring-context.xsd
-    http://www.springframework.org/schema/data/jpa
-     http://www.springframework.org/schema/data/jpa/spring-jpa.xsd
-     http://www.springframework.org/schema/tx 
-	http://www.springframework.org/schema/tx/spring-tx.xsd
+    http://www.springframework.org/schema/context/spring-context-4.0.xsd
+    http://www.springframework.org/schema/data/jpa 
+    http://www.springframework.org/schema/data/jpa/spring-jpa.xsd
     http://www.springframework.org/schema/mvc
 	http://www.springframework.org/schema/mvc/spring-mvc.xsd">
 
 	<!-- Package Scanning -->
 	<context:component-scan base-package="com.sdj" />
 	<context:annotation-config />
+	<mvc:annotation-driven />
+	<jpa:repositories base-package="com.sdj.repository" />
 
-	 <jpa:repositories base-package="com.sdj.repository" /> 
-
-	<!-- View Resolver -->
+	<!-- Configure to plugin JSON as request and response in method handler -->
 	<bean
-		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
-		<property name="prefix" value="/WEB-INF/jsp/" />
-		<property name="suffix" value=".jsp" />
+		class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter">
+		<property name="messageConverters">
+			<list>
+				<ref bean="jsonMessageConverter" />
+				<ref bean="xmlMessageConverter" />
+			</list>
+		</property>
 	</bean>
 
+	<!-- Configure bean to convert JSON to POJO and vice versa -->
+	<bean id="jsonMessageConverter"
+		class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+	</bean>
+
+	<!-- Configure bean to convert XML to POJO and vice versa -->
+
+	<bean id="xmlMessageConverter"
+		class="org.springframework.http.converter.xml.Jaxb2RootElementHttpMessageConverter">
+	</bean>
 
 	<!-- Configure the entity manager factory bean -->
 	<bean id="entityManagerFactory"
@@ -44,14 +55,17 @@
 		<!-- Set base package of your entities -->
 		<property name="packagesToScan" value="com.sdj.model" />
 	</bean>
-
+	<bean name="viewResolver"
+		class="org.springframework.web.servlet.view.BeanNameViewResolver" />
+	<bean name="jsonTemplate"
+		class="org.springframework.web.servlet.view.json.MappingJackson2JsonView" />
 	<!-- Configure the transaction manager bean -->
 	<bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
 		<property name="entityManagerFactory" ref="entityManagerFactory" />
 	</bean>
 
 	<!-- Enable annotation driven transaction management -->
-	<tx:annotation-driven />
+	<!-- <tx:annotation-driven /> -->
 
 	<!-- Configure Spring Data JPA and set the base package of the repository 
 		interfaces -->
@@ -69,5 +83,6 @@
 		<property name="username" value="${database.user}" />
 		<property name="password" value="${database.password}" />
 	</bean>
+
 </beans>
 
